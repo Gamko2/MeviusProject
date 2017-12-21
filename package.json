@@ -10,6 +10,7 @@
   "author": "Marc",
   "license": "ISC",
   "dependencies": {
+    "@types/bcrypt": "^1.0.0",
     "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
     "ejs": "^2.5.7",

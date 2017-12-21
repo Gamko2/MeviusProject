@@ -18,7 +18,7 @@ let mysqlConfig = {
 var server = app.listen(8081, function () {
     var host = server.address().address;
     var port = server.address().port;
-    console.log("Example app listening at http://%s:%s", host, port);
+    console.log("App listening at http://%s:%s", host, port);
 });
 app.use(session({ secret: "geheim" }));
 /*
@@ -31,20 +31,28 @@ sess.email;
 sess.username;
 
 })*/
+let isAuthenticated = (request, response, next) => {
+    if (request.session.user) {
+        next();
+    }
+    else {
+        response.send({ "error": 401, "message": "Unauthorized" });
+    }
+};
 app.post("/testpost", (request, response) => {
     console.log(request.body.username);
     request.session.username = request.body.username;
     response.send("Username: " + request.body.username);
 });
 app.get("/isloggedin", (request, response) => {
-    if (request.session.username) {
-        response.send("Hi, " + request.session.username);
+    if (request.session.user) {
+        response.send("Hi, " + request.session.user.username);
     }
     else {
         response.send("Not logged in");
     }
 });
-app.post('/logout', (request, response) => {
+app.post('/logout', isAuthenticated, (request, response) => {
     delete request.session.user;
     response.send("Logout Successfull");
 });

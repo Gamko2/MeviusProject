@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import * as bodyParser from "body-parser";
 let bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -38,6 +38,17 @@ sess.username;
 
 })*/
 
+ let isAuthenticated = (request: Request, response: Response, next: NextFunction) => {
+if (request.session.user){
+  next();
+}
+else {
+  response.send({"error": 401, "message": "Unauthorized" });
+}
+ }
+
+
+
 app.post("/testpost", (request: Request, response: Response) => {
   console.log(request.body.username);
   request.session.username = request.body.username;
@@ -45,16 +56,16 @@ app.post("/testpost", (request: Request, response: Response) => {
 })
 
 app.get("/isloggedin", (request: Request, response: Response) => {
-  if (request.session.username) {
-    response.send("Hi, " + request.session.username);
+  if (request.session.user) {
+    response.send("Hi, " + request.session.user.username);
   } else {
     response.send("Not logged in");
   }
 });
 
-app.post('/logout', (request: Request, response: Response) =>{
-delete request.session.user;
-response.send ("Logout Successfull");
+app.post('/logout',isAuthenticated, (request: Request, response: Response) => {
+  delete request.session.user;
+  response.send("Logout Successfull");
 
 })
 
@@ -75,18 +86,18 @@ app.post('/login', (request: Request, response: Response) => {
     }
     else {
       if (results[0].password.length) {
-        bcrypt.compare(user.password,results[0].password, (err, result)=>{
-          if (result){
-            request.session.user=user;
+        bcrypt.compare(user.password, results[0].password, (err, result) => {
+          if (result) {
+            request.session.user = user;
             response.send("Login Successfull");
           }
           else {
             response.send("Login failed");
           }
         })
-        
+
       }
-      
+
     }
 
 
@@ -102,11 +113,11 @@ app.post('/register', (request: Request, response: Response) => {
     "username": request.body.username,
     "password": request.body.password,
     "email": request.body.email
-    
+
   }
   console.log(user.password);
-  bcrypt.hash(user.password, saltRounds,  (err,hash) => {
-    user.password=hash;
+  bcrypt.hash(user.password, saltRounds, (err, hash) => {
+    user.password = hash;
     console.log(user.password);
     connection.query('INSERT INTO usertable SET ?', user, (error, results, fields) => {
       if (error) {
@@ -124,7 +135,7 @@ app.post('/register', (request: Request, response: Response) => {
       }
     });
   })
-    
+
 
 
 });

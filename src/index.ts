@@ -47,7 +47,64 @@ else {
 }
  }
 
+app.put ("/appartement", isAuthenticated, (request: Request, response: Response) => {
+  let updatequery="UPDATE appartements SET "
+  let connection = mysql.createConnection(mysqlConfig);
+  connection.connect();
+  for (let key in request.body) {
+    if (key !="id"){
+    let value = request.body[key];
+    updatequery=updatequery + key +"= '" +value +"', ";
+    } 
+  }
+updatequery=updatequery.substr(0,updatequery.length-2);
+updatequery=updatequery +" WHERE ID=" + request.body.id;
+console.log(updatequery);
+connection.query(updatequery,(error,results,fields) =>{
+  if (error) {
+    console.log("error ocurred", error);
+    response.send({
+      "code": 400,
+      "failed": "error ocurred"
+    }) 
+  }else {
+    response.send({
+      "code" : 200,
+      "success" : "Appartement updated successfully"
+    })
+    
+    }
+  })
+});
 
+
+app.post("/postappartement", isAuthenticated, (request: Request, response: Response) => {
+  let connection = mysql.createConnection(mysqlConfig);
+  connection.connect();
+  let sql = "INSERT into appartements (objecttype,rooms,squaremeter,price,extra,plz,ort,contact) VALUES ?";
+  let values= [
+    [request.body.objecttype,request.body.rooms,request.body.squaremeter,request.body.price,
+      request.body.extra,request.body.plz,request.body.ort,request.session.user.id]
+  ]
+  connection.query(sql,[values],(error,results,fields) =>{
+  if (error) {
+    console.log("error ocurred", error);
+    response.send({
+      "code": 400,
+      "failed": "error ocurred"
+    })
+} else {
+
+  console.log ("The Solution is: ",results);
+  response.send ({
+    "code" : 200,
+    "success" : "Appartement added successfully"
+  })
+}
+
+
+})
+})
 
 app.post("/testpost", (request: Request, response: Response) => {
   console.log(request.body.username);
@@ -55,13 +112,13 @@ app.post("/testpost", (request: Request, response: Response) => {
   response.send("Username: " + request.body.username);
 })
 
-app.get("/isloggedin", (request: Request, response: Response) => {
-  if (request.session.user) {
-    response.send("Hi, " + request.session.user.username);
-  } else {
-    response.send("Not logged in");
-  }
-});
+app.get("/isloggedin",isAuthenticated, (request: Request, response: Response) => {
+  let tmp=Object.assign({},request.session.user)
+  delete tmp.password;
+response.send(tmp);
+  });
+
+   
 
 app.post('/logout',isAuthenticated, (request: Request, response: Response) => {
   delete request.session.user;
@@ -76,7 +133,7 @@ app.post('/login', (request: Request, response: Response) => {
     "username": request.body.username,
     "password": request.body.password
   }
-  connection.query("SELECT password from usertable WHERE username = ? ", [user.username], (error, results) => {
+  connection.query("SELECT * from usertable WHERE username = ? ", [user.username], (error, results) => {
     if (error) {
       console.log("error ocurred", error);
       response.send({
@@ -88,7 +145,7 @@ app.post('/login', (request: Request, response: Response) => {
       if (results[0].password.length) {
         bcrypt.compare(user.password, results[0].password, (err, result) => {
           if (result) {
-            request.session.user = user;
+            request.session.user = results[0];
             response.send("Login Successfull");
           }
           else {

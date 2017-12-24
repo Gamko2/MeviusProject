@@ -77,6 +77,47 @@ connection.query(updatequery,(error,results,fields) =>{
   })
 });
 
+app.post("/appartement", (request: Request, response: Response)=>{
+  let connection = mysql.createConnection(mysqlConfig);
+  connection.connect();
+  let getappartementquery =" Select * from appartements WHERE ";
+  for (let key in request.body){
+    if (key != "limit"){
+      if (key != "offset"){
+      let value = request.body[key];
+    getappartementquery=getappartementquery + key +" = '" + value +"'" +" AND ";
+      }
+    }
+  }
+  getappartementquery=getappartementquery.substr(0,getappartementquery.length-4);
+
+  for (let key in request.body){
+    if (key=="limit"){
+      let value = request.body[key];
+      getappartementquery=getappartementquery +" LIMIT " + value +" " ;
+    }
+    if (key=="offset"){
+      let value = request.body[key];
+      getappartementquery=getappartementquery +"OFFSET " +  value; 
+    }else{
+
+    }
+  }
+  
+  console.log(getappartementquery);
+  connection.query(getappartementquery, (error,rows)=>{
+    if (error){
+      response.send({
+        "code": 400,
+        "failed": "error ocurred"
+      })
+    }else {
+    let json =JSON.stringify(rows);
+    response.send(json);
+    }
+  });
+  
+})
 
 app.post("/postappartement", isAuthenticated, (request: Request, response: Response) => {
   let connection = mysql.createConnection(mysqlConfig);

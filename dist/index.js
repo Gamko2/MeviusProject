@@ -73,25 +73,19 @@ app.get("/appartement", (request, response) => {
     connection.connect();
     let getappartementquery = " Select * from appartements WHERE ";
     for (let key in request.query) {
-        if (key != "limit") {
-            if (key != "offset") {
+        if (key !== "limit") {
+            if (key !== "offset") {
                 let value = request.query[key];
                 getappartementquery = getappartementquery + key + " = '" + value + "'" + " AND ";
             }
         }
     }
     getappartementquery = getappartementquery.substr(0, getappartementquery.length - 4);
-    for (let key in request.query) {
-        if (key == "limit") {
-            let value = request.query[key];
-            getappartementquery = getappartementquery + " LIMIT " + value + " ";
-        }
-        if (key == "offset") {
-            let value = request.query[key];
-            getappartementquery = getappartementquery + "OFFSET " + value;
-        }
-        else {
-        }
+    if (request.query.limit) {
+        getappartementquery = getappartementquery + " LIMIT " + request.query.limit + " ";
+    }
+    if (request.query.offset) {
+        getappartementquery = getappartementquery + "OFFSET " + request.query.offset;
     }
     console.log(getappartementquery);
     connection.query(getappartementquery, (error, rows) => {

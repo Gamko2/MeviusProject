@@ -27,16 +27,7 @@ var server = app.listen(8081, function () {
 })
 
 app.use(session({ secret: "geheim" }));
-/*
-let sess;
-app.get('/', (req,res) =>{
-    let connection = mysql.createConnection(mysqlConfig);
-    connection.connect();
-sess=req.session;
-sess.email;
-sess.username;
 
-})*/
 
  let isAuthenticated = (request: Request, response: Response, next: NextFunction) => {
 if (request.session.user){
@@ -82,8 +73,8 @@ app.get("/appartement", (request: Request, response: Response)=>{
   connection.connect();
   let getappartementquery =" Select * from appartements WHERE ";
   for (let key in request.query){
-    if (key != "limit"){
-      if (key != "offset"){
+    if (key !== "limit"){
+      if (key !== "offset"){
       let value = request.query[key];
     getappartementquery=getappartementquery + key +" = '" + value +"'" +" AND ";
       }
@@ -91,18 +82,14 @@ app.get("/appartement", (request: Request, response: Response)=>{
   }
   getappartementquery=getappartementquery.substr(0,getappartementquery.length-4);
 
-  for (let key in request.query){
-    if (key=="limit"){
-      let value = request.query[key];
-      getappartementquery=getappartementquery +" LIMIT " + value +" " ;
+  
+    if (request.query.limit){
+      getappartementquery=getappartementquery +" LIMIT " + request.query.limit +" " ;
     }
-    if (key=="offset"){
-      let value = request.query[key];
-      getappartementquery=getappartementquery +"OFFSET " +  value; 
-    }else{
-
+    if (request.query.offset){
+      getappartementquery=getappartementquery +"OFFSET " +  request.query.offset; 
     }
-  }
+  
   
   console.log(getappartementquery);
   connection.query(getappartementquery, (error,rows)=>{

@@ -68,26 +68,26 @@ app.put("/appartement", isAuthenticated, (request, response) => {
         }
     });
 });
-app.post("/appartement", (request, response) => {
+app.get("/appartement", (request, response) => {
     let connection = mysql.createConnection(mysqlConfig);
     connection.connect();
     let getappartementquery = " Select * from appartements WHERE ";
-    for (let key in request.body) {
+    for (let key in request.query) {
         if (key != "limit") {
             if (key != "offset") {
-                let value = request.body[key];
+                let value = request.query[key];
                 getappartementquery = getappartementquery + key + " = '" + value + "'" + " AND ";
             }
         }
     }
     getappartementquery = getappartementquery.substr(0, getappartementquery.length - 4);
-    for (let key in request.body) {
+    for (let key in request.query) {
         if (key == "limit") {
-            let value = request.body[key];
+            let value = request.query[key];
             getappartementquery = getappartementquery + " LIMIT " + value + " ";
         }
         if (key == "offset") {
-            let value = request.body[key];
+            let value = request.query[key];
             getappartementquery = getappartementquery + "OFFSET " + value;
         }
         else {

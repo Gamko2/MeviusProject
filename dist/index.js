@@ -20,17 +20,13 @@ var server = app.listen(8081, function () {
     var port = server.address().port;
     console.log("App listening at http://%s:%s", host, port);
 });
+app.all('*', function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
 app.use(session({ secret: "geheim" }));
-/*
-let sess;
-app.get('/', (req,res) =>{
-    let connection = mysql.createConnection(mysqlConfig);
-    connection.connect();
-sess=req.session;
-sess.email;
-sess.username;
-
-})*/
 let isAuthenticated = (request, response, next) => {
     if (request.session.user) {
         next();
